@@ -1,38 +1,39 @@
 package com.razorpay.razorpay_flutter;
 
 import androidx.annotation.NonNull;
-
-import org.json.JSONException;
-
 import java.util.Map;
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 /**
  * RazorpayFlutterPlugin
  */
-public class RazorpayFlutterPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+public class RazorpayFlutterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
     private RazorpayDelegate razorpayDelegate;
     private ActivityPluginBinding pluginBinding;
-    private static String CHANNEL_NAME = "razorpay_flutter";
-    Map<String, Object> _arguments;
-    String customerMobile ;
-    String color;
-
+    private static final String CHANNEL_NAME = "razorpay_flutter";
+    private Map<String, Object> _arguments;
+    private String customerMobile;
+    private String color;
 
     public RazorpayFlutterPlugin() {
     }
 
-    
-
+    // Define an enum for the method names.
+    private enum MethodName {
+        open,
+        setPackageName,
+        resync,
+        setKeyID,
+        linkNewUpiAccount,
+        manageUpiAccounts,
+        isTurboPluginAvailable
+    }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -42,55 +43,53 @@ public class RazorpayFlutterPlugin implements FlutterPlugin, MethodCallHandler, 
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        // Clean up if necessary.
     }
-
-
-   
 
     @Override
     @SuppressWarnings("unchecked")
     public void onMethodCall(MethodCall call, Result result) {
+        // Convert call.method string to enum.
+        MethodName method;
+        try {
+            method = MethodName.valueOf(call.method);
+        } catch (IllegalArgumentException e) {
+            result.notImplemented();
+            return;
+        }
 
-
-        switch (call.method) {
-
-            case "open":
+        switch (method) {
+            case open:
                 razorpayDelegate.openCheckout((Map<String, Object>) call.arguments, result);
                 break;
-
-            case "setPackageName":
-                razorpayDelegate.setPackageName((String)call.arguments);
+            case setPackageName:
+                razorpayDelegate.setPackageName((String) call.arguments);
                 break;
-
-            case "resync":
+            case resync:
                 razorpayDelegate.resync(result);
                 break;
-
-            case "setKeyID":
+            case setKeyID:
                 String key = call.arguments().toString();
-                razorpayDelegate.setKeyID(key,  result);
+                razorpayDelegate.setKeyID(key, result);
                 break;
-            case "linkNewUpiAccount":
+            case linkNewUpiAccount:
                 _arguments = call.arguments();
                 customerMobile = (String) _arguments.get("customerMobile");
                 color = (String) _arguments.get("color");
-                razorpayDelegate.linkNewUpiAccount(customerMobile, color , result);
+                razorpayDelegate.linkNewUpiAccount(customerMobile, color, result);
                 break;
-
-            case "manageUpiAccounts":
+            case manageUpiAccounts:
                 _arguments = call.arguments();
                 customerMobile = (String) _arguments.get("customerMobile");
                 color = (String) _arguments.get("color");
-                razorpayDelegate.manageUpiAccounts(customerMobile, color , result);
+                razorpayDelegate.manageUpiAccounts(customerMobile, color, result);
                 break;
-            case "isTurboPluginAvailable":
+            case isTurboPluginAvailable:
                 razorpayDelegate.isTurboPluginAvailable(result);
                 break;
             default:
                 result.notImplemented();
-
         }
-
     }
 
     @Override
@@ -112,7 +111,9 @@ public class RazorpayFlutterPlugin implements FlutterPlugin, MethodCallHandler, 
 
     @Override
     public void onDetachedFromActivity() {
-        pluginBinding.removeActivityResultListener(razorpayDelegate);
+        if (pluginBinding != null && razorpayDelegate != null) {
+            pluginBinding.removeActivityResultListener(razorpayDelegate);
+        }
         pluginBinding = null;
     }
 }
