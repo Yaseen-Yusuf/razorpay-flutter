@@ -9,9 +9,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 
-/**
- * RazorpayFlutterPlugin
- */
 public class RazorpayFlutterPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
     private RazorpayDelegate razorpayDelegate;
@@ -21,10 +18,8 @@ public class RazorpayFlutterPlugin implements FlutterPlugin, MethodChannel.Metho
     private String customerMobile;
     private String color;
 
-    public RazorpayFlutterPlugin() {
-    }
+    public RazorpayFlutterPlugin() {}
 
-    // Define an enum for the method names.
     private enum MethodName {
         open,
         setPackageName,
@@ -43,13 +38,12 @@ public class RazorpayFlutterPlugin implements FlutterPlugin, MethodChannel.Metho
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        // Clean up if necessary.
+        // Cleanup if necessary
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void onMethodCall(MethodCall call, Result result) {
-        // Convert call.method string to enum.
         MethodName method;
         try {
             method = MethodName.valueOf(call.method);
@@ -57,7 +51,6 @@ public class RazorpayFlutterPlugin implements FlutterPlugin, MethodChannel.Metho
             result.notImplemented();
             return;
         }
-
         switch (method) {
             case open:
                 razorpayDelegate.openCheckout((Map<String, Object>) call.arguments, result);
